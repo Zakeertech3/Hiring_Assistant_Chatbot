@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Hiring Assistant</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 120px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 32px rgba(255, 107, 107, 0.4);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        /* Notification badge */
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            background: #28a745;
+            border-radius: 50%;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: badge-pulse 2s infinite;
+        }
+
+        @keyframes badge-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Enhanced tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 140px;
+            background-color: rgba(0,0,0,0.9);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1001;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -70px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0,0,0,0.9) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-10px) translateY(-10px); }
+            50% { transform: translateX(10px) translateY(10px); }
+            75% { transform: translateX(-5px) translateY(10px); }
+        }
+
+        .chatbot-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            box-shadow: 
+                0 32px 64px rgba(0,0,0,0.12),
+                0 0 0 1px rgba(255,255,255,0.05) inset;
+            width: 90%;
+            max-width: 850px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: containerEntrance 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes containerEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 28px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chatbot-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: headerShimmer 3s linear infinite;
+        }
+
+        /* Progress bar for hiring stages */
+        .progress-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 33.33%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            animation: progressGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes progressGlow {
+            0% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
+            100% { box-shadow: 0 0 15px rgba(40, 167, 69, 0.8); }
+        }
+
+        .stage-indicator {
+            position: absolute;
+            top: 10px;
+            left: 28px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        @keyframes headerShimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .chatbot-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .chatbot-header p {
+            opacity: 0.95;
+            font-size: 16px;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.3px;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 28px;
+            right: 28px;
+            width: 14px;
+            height: 14px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            animation: statusPulse 2s ease-in-out infinite;
+            z-index: 2;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: scale(1.1);
+                box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+            }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
+            position: relative;
+        }
+
+        .chat-messages::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, rgba(250,250,250,1) 0%, rgba(250,250,250,0) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Add floating elements for visual interest */
+        .chat-messages::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            right: 10%;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: floatRight 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes floatRight {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-20px) scale(1.1); opacity: 0.1; }
+        }
+
+        .chat-empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .chat-empty-state::before {
+            content: '💬';
+            font-size: 48px;
+            display: block;
+            margin-bottom: 16px;
+            animation: gentle-bounce 3s ease-in-out infinite;
+        }
+
+        @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .message {
+            margin-bottom: 24px;
+            display: flex;
+            animation: messageSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        @keyframes messageSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 82%;
+            padding: 18px 24px;
+            border-radius: 20px;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.6;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .message.bot .message-content {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #2d3748;
+            border-bottom-left-radius: 6px;
+            box-shadow: 
+                0 4px 12px rgba(0,0,0,0.08),
+                0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .message.bot .message-content:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 24px rgba(0,0,0,0.12),
+                0 4px 8px rgba(0,0,0,0.08);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 6px;
+            box-shadow: 
+                0 4px 12px rgba(102, 126, 234, 0.3),
+                0 2px 4px rgba(102, 126, 234, 0.2);
+        }
+
+        .message.user .message-content:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 24px rgba(102, 126, 234, 0.4),
+                0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .assignment-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 70%, #f093fb 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 18px;
+            margin: 16px 0;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .assignment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .assignment-card:hover::before {
+            left: 100%;
+        }
+
+        .assignment-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(102, 126, 234, 0.3),
+                0 10px 20px rgba(102, 126, 234, 0.2),
+                0 0 0 1px rgba(255,255,255,0.1) inset;
+        }
+
+        .assignment-card:active {
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .assignment-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .assignment-brief {
+            font-size: 15px;
+            opacity: 0.95;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+        }
+
+        .assignment-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .assignment-details {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            color: #2d3748;
+            padding: 28px;
+            border-radius: 20px;
+            margin: 16px 0;
+            border-left: 5px solid #667eea;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.08),
+                0 4px 16px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .assignment-details::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        }
+
+        .assignment-details h3 {
+            color: #1a202c;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+        }
+
+        .assignment-details h4 {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 12px 0;
+            letter-spacing: -0.2px;
+        }
+
+        .assignment-details p {
+            line-height: 1.7;
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: #4a5568;
+        }
+
+        .assignment-details ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .assignment-details li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+            color: #4a5568;
+            font-size: 15px;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .tech-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-tag::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tech-tag:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .tech-tag:hover::before {
+            left: 100%;
+        }
+
+        .deadline-badge {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 700;
+            display: inline-block;
+            margin: 16px 0;
+            letter-spacing: 0.3px;
+            box-shadow: 
+                0 6px 20px rgba(255, 107, 107, 0.3),
+                0 3px 10px rgba(255, 107, 107, 0.2);
+            animation: deadlinePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes deadlinePulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 
+                    0 6px 20px rgba(255, 107, 107, 0.3),
+                    0 3px 10px rgba(255, 107, 107, 0.2);
+            }
+            50% { 
+                transform: scale(1.02);
+                box-shadow: 
+                    0 8px 24px rgba(255, 107, 107, 0.4),
+                    0 4px 12px rgba(255, 107, 107, 0.3);
+            }
+        }
+
+        .chat-input-container {
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0,0,0,0.06);
+            position: relative;
+        }
+
+        .chat-input-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 16px 24px;
+            border: 2px solid #e2e8f0;
+            border-radius: 28px;
+            font-size: 16px;
+            font-weight: 400;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            color: #2d3748;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .chat-input::placeholder {
+            color: #a0aec0;
+            font-weight: 400;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+            background: rgba(255,255,255,1);
+            box-shadow: 
+                0 0 0 4px rgba(102, 126, 234, 0.1),
+                0 4px 12px rgba(0,0,0,0.05);
+            transform: translateY(-1px);
+        }
+
+        .send-btn {
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 28px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 4px 12px rgba(102, 126, 234, 0.3),
+                0 2px 6px rgba(102, 126, 234, 0.2);
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 
+                0 8px 24px rgba(102, 126, 234, 0.4),
+                0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-btn:hover::before {
+            left: 100%;
+        }
+
+        .send-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 
+                0 4px 12px rgba(102, 126, 234, 0.2),
+                0 2px 6px rgba(102, 126, 234, 0.1);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+        }
+
+        .quick-actions::before {
+            content: 'Quick Actions';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .quick-btn {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.2px;
+            box-shadow: 
+                0 3px 8px rgba(102, 126, 234, 0.2),
+                0 1px 4px rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .quick-btn::after {
+            content: attr(data-shortcut);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .quick-btn:hover::after {
+            opacity: 1;
+        }
+
+        .quick-btn:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 
+                0 6px 16px rgba(102, 126, 234, 0.3),
+                0 3px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .quick-btn:hover::before {
+            left: 100%;
+        }
+
+        .quick-btn:active {
+            transform: translateY(0) scale(1.02);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            border-bottom-left-radius: 6px;
+            margin-bottom: 24px;
+            box-shadow: 
+                0 4px 12px rgba(0,0,0,0.08),
+                0 2px 4px rgba(0,0,0,0.05);
+            max-width: 100px;
+            border: 1px solid rgba(0,0,0,0.04);
+            animation: typingEntrance 0.3s ease-out;
+        }
+
+        @keyframes typingEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .typing-dot {
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            animation: typingBounce 1.4s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% { 
+                transform: translateY(0) scale(1);
+                opacity: 0.7;
+            }
+            30% { 
+                transform: translateY(-12px) scale(1.1);
+                opacity: 1;
+            }
+        }
+
+        .scrollbar-thin {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(102, 126, 234, 0.3) rgba(241, 241, 241, 0.5);
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(241, 241, 241, 0.5);
+            border-radius: 4px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+        }
+
+        @media (max-width: 768px) {
+            .chatbot-container {
+                width: 95%;
+                height: 95vh;
+                border-radius: 20px;
+            }
+            
+            .chatbot-header {
+                padding: 24px 20px;
+            }
+            
+            .chatbot-header h1 {
+                font-size: 24px;
+            }
+            
+            .chatbot-header p {
+                font-size: 14px;
+            }
+            
+            .chat-messages {
+                padding: 20px;
+            }
+            
+            .message-content {
+                max-width: 90%;
+                padding: 16px 20px;
+                font-size: 14px;
+            }
+            
+            .assignment-card {
+                padding: 20px;
+                margin: 12px 0;
+            }
+            
+            .assignment-title {
+                font-size: 18px;
+            }
+            
+            .assignment-brief {
+                font-size: 14px;
+            }
+            
+            .assignment-details {
+                padding: 24px 20px;
+            }
+            
+            .chat-input-container {
+                padding: 20px;
+            }
+            
+            .chat-input {
+                padding: 14px 20px;
+                font-size: 16px;
+            }
+            
+            .send-btn {
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+            
+            .quick-actions {
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            .quick-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            
+            .tech-stack {
+                gap: 8px;
+            }
+            
+            .tech-tag {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chatbot-container {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .chatbot-header h1 {
+                font-size: 22px;
+            }
+            
+            .message-content {
+                max-width: 95%;
+                padding: 14px 18px;
+            }
+            
+            .assignment-card {
+                padding: 18px;
+            }
+            
+            .assignment-details {
+                padding: 20px 16px;
+            }
+            
+            .input-group {
+                gap: 8px;
+            }
+            
+            .chat-input {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="chatbot-header">
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="stage-indicator">ROUND 1 • ACTIVE</div>
+            <div class="status-indicator"></div>
+            <h1>🚀 AI Agent Mastery Challenge</h1>
+            <p>Elite Developer Assessment • Round 1</p>
+        </div>
+        
+        <div class="chat-messages scrollbar-thin" id="chatMessages">
+            <!-- Empty state preview -->
+            <div class="chat-empty-state" id="emptyState">
+                <p style="color: #718096; font-size: 14px; margin: 0;">Start your AI mastery journey...</p>
+            </div>
+            
+            <!-- Progress indicator -->
+            <div id="progressIndicator" style="position: absolute; top: 16px; right: 24px; background: rgba(255,255,255,0.9); padding: 8px 16px; border-radius: 20px; font-size: 12px; color: #667eea; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 2;">
+                🎯 Round 1 of 3
+            </div>
+            
+            <!-- Initial welcome message -->
+            <div class="message bot">
+                <div class="message-content">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                            🤖
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: #2d3748;">AI Recruitment Assistant</div>
+                            <div style="font-size: 12px; color: #718096;">TechCorp AI • Online</div>
+                        </div>
+                    </div>
+                    <p>🚀 Welcome to the AI Agent Mastery Challenge!</p>
+                    <p>Ready to showcase your AI development skills? I'm here to guide you through our elite Round 1 assessment. We have 4 cutting-edge AI agent challenges designed to test your expertise in building intelligent, production-ready systems.</p>
+                    
+                    <!-- Quick stats preview -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; padding: 16px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700; color: #667eea;">4</div>
+                            <div style="font-size: 11px; color: #6c757d;">Challenges</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700; color: #28a745;">48h</div>
+                            <div style="font-size: 11px; color: #6c757d;">Duration</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700; color: #ff6b6b;">Live</div>
+                            <div style="font-size: 11px; color: #6c757d;">Assessment</div>
+                        </div>
+                    </div>
+                    
+                    <p>Type <strong>"Show Assignments"</strong> to explore all available challenges, or ask me any questions about the process!</p>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="quick-actions">
+                <button class="quick-btn" data-shortcut="Ctrl+1" onclick="sendQuickMessage('Show Assignments')">📋 Show Assignments</button>
+                <button class="quick-btn" data-shortcut="Ctrl+2" onclick="sendQuickMessage('Assignment Guidelines')">📖 Guidelines</button>
+                <button class="quick-btn" data-shortcut="Ctrl+3" onclick="sendQuickMessage('Help')">❓ Help</button>
+            </div>
+            <div class="input-group">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Type your message here..." onkeypress="handleKeyPress(event)" oninput="updateCharCount()">
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                    <span id="sendBtnText">Send</span>
+                    <span id="sendBtnIcon" style="display: none;">✓</span>
+                </button>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: #6c757d;">
+                <span id="messageCounter">0 messages sent</span>
+                <span id="charCounter">0/200</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fab tooltip" onclick="showQuickTips()" title="Quick Tips">
+        💡
+        <span class="tooltiptext">Get quick tips & shortcuts</span>
+        <div class="notification-badge">!</div>
+    </button>
+
+    <script>
+        const assignments = [
+            {
+                id: 1,
+                title: "Customer Support AI Agent",
+                brief: "Build an intelligent customer support agent that can handle inquiries, resolve issues, and escalate complex problems.",
+                description: "Create a comprehensive customer support AI agent that can understand natural language queries, access a knowledge base, provide accurate solutions, and seamlessly escalate to human agents when necessary. The agent should handle multiple conversation flows and maintain context throughout the interaction.",
+                techStack: ["Python", "FastAPI", "OpenAI GPT", "LangChain", "Redis", "PostgreSQL", "Docker"],
+                deadline: "48 hours",
+                requirements: [
+                    "Natural language understanding and processing",
+                    "Knowledge base integration and search",
+                    "Multi-turn conversation handling",
+                    "Escalation logic for complex queries",
+                    "Response quality and accuracy metrics",
+                    "RESTful API with proper documentation"
+                ]
+            },
+            {
+                id: 2,
+                title: "Code Review AI Agent",
+                brief: "Develop an AI agent that can automatically review code, identify issues, suggest improvements, and ensure best practices.",
+                description: "Build an intelligent code review agent that analyzes code submissions, identifies potential bugs, security vulnerabilities, performance issues, and style violations. The agent should provide constructive feedback and suggest specific improvements with code examples.",
+                techStack: ["Python", "AST", "GitHub API", "OpenAI Codex", "SonarQube", "ESLint", "Webhook Integration"],
+                deadline: "48 hours",
+                requirements: [
+                    "Static code analysis and parsing",
+                    "Security vulnerability detection",
+                    "Performance optimization suggestions",
+                    "Code style and best practice enforcement",
+                    "Integration with version control systems",
+                    "Detailed reporting and feedback generation"
+                ]
+            },
+            {
+                id: 3,
+                title: "Personal Assistant AI Agent",
+                brief: "Create a smart personal assistant that can manage schedules, set reminders, answer questions, and automate daily tasks.",
+                description: "Develop a comprehensive personal AI assistant that can understand voice and text commands, manage calendars, set intelligent reminders, answer questions using web search, and automate routine tasks. The agent should learn user preferences and adapt its responses accordingly.",
+                techStack: ["Node.js", "Express", "Google Calendar API", "Speech-to-Text", "OpenAI GPT", "MongoDB", "React"],
+                deadline: "48 hours",
+                requirements: [
+                    "Voice and text input processing",
+                    "Calendar and task management integration",
+                    "Web search and information retrieval",
+                    "User preference learning and adaptation",
+                    "Multi-platform compatibility",
+                    "Privacy and data security measures"
+                ]
+            },
+            {
+                id: 4,
+                title: "Content Moderation AI Agent",
+                brief: "Build an AI agent that can automatically moderate content, detect harmful material, and maintain community standards.",
+                description: "Create an advanced content moderation AI agent that can analyze text, images, and videos for inappropriate content, hate speech, spam, and policy violations. The agent should provide real-time moderation with human review integration for edge cases.",
+                techStack: ["Python", "TensorFlow", "OpenAI GPT", "Computer Vision", "BERT", "Kafka", "Elasticsearch"],
+                deadline: "48 hours",
+                requirements: [
+                    "Multi-modal content analysis (text, image, video)",
+                    "Real-time processing and decision making",
+                    "Hate speech and toxicity detection",
+                    "Spam and fraud identification",
+                    "Human moderator workflow integration",
+                    "Detailed analytics and reporting dashboard"
+                ]
+            }
+        ];
+
+        let conversationHistory = [];
+        let isTyping = false;
+        let messageCount = 0;
+
+        function updateCharCount() {
+            const input = document.getElementById('chatInput');
+            const counter = document.getElementById('charCounter');
+            const currentLength = input.value.length;
+            const maxLength = 200;
+            
+            counter.textContent = `${currentLength}/${maxLength}`;
+            
+            if (currentLength > maxLength * 0.8) {
+                counter.style.color = '#ff6b6b';
+            } else if (currentLength > maxLength * 0.6) {
+                counter.style.color = '#ffa500';
+            } else {
+                counter.style.color = '#6c757d';
+            }
+            
+            if (currentLength >= maxLength) {
+                input.value = input.value.substring(0, maxLength);
+                counter.textContent = `${maxLength}/${maxLength}`;
+            }
+        }
+
+        function updateMessageCounter() {
+            const counter = document.getElementById('messageCounter');
+            messageCount++;
+            counter.textContent = `${messageCount} message${messageCount !== 1 ? 's' : ''} sent`;
+        }
+
+        function showSendFeedback() {
+            const btnText = document.getElementById('sendBtnText');
+            const btnIcon = document.getElementById('sendBtnIcon');
+            const btn = document.getElementById('sendBtn');
+            
+            btnText.style.display = 'none';
+            btnIcon.style.display = 'inline';
+            btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            
+            setTimeout(() => {
+                btnText.style.display = 'inline';
+                btnIcon.style.display = 'none';
+                btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }, 1000);
+        }
+
+        function addMessage(content, isUser = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = content;
+            
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Add timestamp to messages
+            const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const timeElement = document.createElement('div');
+            timeElement.style.fontSize = '11px';
+            timeElement.style.opacity = '0.6';
+            timeElement.style.textAlign = isUser ? 'right' : 'left';
+            timeElement.style.marginTop = '6px';
+            timeElement.style.color = isUser ? 'rgba(255,255,255,0.8)' : '#718096';
+            timeElement.textContent = timestamp;
+            contentDiv.appendChild(timeElement);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.style.display = 'block';
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.style.display = 'none';
+        }
+
+        function simulateTyping(callback, delay = 1500) {
+            showTypingIndicator();
+            
+            // Optional: Play a subtle notification sound
+            try {
+                playNotificationSound();
+            } catch (e) {
+                // Silently fail if audio context is not available
+            }
+            
+            setTimeout(() => {
+                hideTypingIndicator();
+                callback();
+            }, delay);
+        }
+
+        function showQuickTips() {
+            const tips = `
+                <div class="assignment-details">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 42px; margin-bottom: 12px;">⚡</div>
+                        <h3>Quick Tips & Shortcuts</h3>
+                    </div>
+                    
+                    <h4>⌨️ Keyboard Shortcuts:</h4>
+                    <ul>
+                        <li><strong>Ctrl/Cmd + 1:</strong> Show Assignments</li>
+                        <li><strong>Ctrl/Cmd + 2:</strong> View Guidelines</li>
+                        <li><strong>Ctrl/Cmd + 3:</strong> Get Help</li>
+                        <li><strong>Ctrl/Cmd + /:</strong> Focus input field</li>
+                        <li><strong>ESC:</strong> Clear input</li>
+                        <li><strong>Enter:</strong> Send message</li>
+                    </ul>
+                    
+                    <h4>🎯 Pro Tips:</h4>
+                    <ul>
+                        <li>Click directly on assignment cards to view details</li>
+                        <li>Use natural language - ask questions conversationally</li>
+                        <li>Type "Accept Assignment [1-4]" to start a challenge</li>
+                        <li>All assignments have a 48-hour deadline from acceptance</li>
+                        <li>Focus on code quality and documentation</li>
+                    </ul>
+                    
+                    <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 20px; border-radius: 15px; margin-top: 20px; border-left: 4px solid #2196f3;">
+                        <p style="margin: 0; color: #1565c0; font-weight: 600;">🚀 <strong>Ready to start?</strong> Type "Show Assignments" or click the button above to explore all 4 AI agent challenges!</p>
+                    </div>
+                </div>
+            `;
+            
+            addMessage(tips);
+            
+            // Hide the notification badge after showing tips
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+        }
+
+        function showAllAssignments() {
+            let content = '<p><strong>🚀 Available AI Agent Assignments:</strong></p>';
+            
+            assignments.forEach(assignment => {
+                content += `
+                    <div class="assignment-card" onclick="showAssignmentDetails(${assignment.id})">
+                        <div class="assignment-title">${assignment.title}</div>
+                        <div class="assignment-brief">${assignment.brief}</div>
+                        <div class="assignment-meta">
+                            <span>⏰ ${assignment.deadline}</span>
+                            <span>🔧 ${assignment.techStack.length} technologies</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content += '<p>Click on any assignment to view detailed requirements!</p>';
+            return content;
+        }
+
+        function showAssignmentDetails(assignmentId) {
+            const assignment = assignments.find(a => a.id === assignmentId);
+            if (!assignment) return;
+
+            // Add visual feedback to the clicked card
+            const cards = document.querySelectorAll('.assignment-card');
+            cards.forEach(card => {
+                if (card.onclick.toString().includes(`showAssignmentDetails(${assignmentId})`)) {
+                    card.style.transform = 'translateY(-4px) scale(1.01)';
+                    card.style.boxShadow = '0 12px 28px rgba(102, 126, 234, 0.4), 0 6px 14px rgba(102, 126, 234, 0.3)';
+                    setTimeout(() => {
+                        card.style.transform = '';
+                        card.style.boxShadow = '';
+                    }, 2000);
+                }
+            });
+
+            setTimeout(() => {
+                let content = `
+                    <div class="assignment-details">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 42px; margin-bottom: 12px;">📋</div>
+                            <h3>${assignment.title}</h3>
+                        </div>
+                        <p><strong>Description:</strong> ${assignment.description}</p>
+                        
+                        <div class="deadline-badge">⏰ Deadline: ${assignment.deadline} from assignment acceptance</div>
+                        
+                        <h4>🛠️ Required Tech Stack:</h4>
+                        <div class="tech-stack">
+                            ${assignment.techStack.map(tech => `<span class="tech-tag">${tech}</span>`).join('')}
+                        </div>
+                        
+                        <h4>✅ Key Requirements:</h4>
+                        <ul>
+                            ${assignment.requirements.map(req => `<li>${req}</li>`).join('')}
+                        </ul>
+                        
+                        <div style="background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%); padding: 20px; border-radius: 15px; margin: 20px 0; border-left: 4px solid #28a745;">
+                            <p style="margin: 0; color: #155724;"><strong>💡 Pro Tip:</strong> Focus on code quality, comprehensive documentation, and demonstrating your deep understanding of AI agent architectures. Think production-ready, not just proof-of-concept!</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 24px;">
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 32px; border-radius: 30px; display: inline-block; font-weight: 600; cursor: pointer; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);" onclick="sendQuickMessage('Accept Assignment ${assignmentId}')">
+                                🚀 Accept This Challenge
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                addMessage(content);
+                addMessage('Ready to take on this challenge? Click the button above or type "Accept Assignment ' + assignmentId + '" to get started! 💪');
+            }, 300);
+        }
+
+        function processMessage(message) {
+            const lowerMessage = message.toLowerCase().trim();
+            
+            if (lowerMessage.includes('show assignments') || lowerMessage.includes('assignments') || lowerMessage.includes('list')) {
+                return showAllAssignments();
+            }
+            
+            if (lowerMessage.includes('show assignments') || lowerMessage.includes('assignments') || lowerMessage.includes('list')) {
+                return showAllAssignments();
+            }
+            
+            if (lowerMessage.includes('assignment guidelines') || lowerMessage.includes('guidelines')) {
+                return `
+                    <div class="assignment-details">
+                        <h3>📖 Assignment Guidelines</h3>
+                        <ul>
+                            <li><strong>Duration:</strong> 48 hours from acceptance</li>
+                            <li><strong>Submission:</strong> GitHub repository with complete code and documentation</li>
+                            <li><strong>Documentation:</strong> Include README with setup instructions and API documentation</li>
+                            <li><strong>Testing:</strong> Include unit tests and integration tests</li>
+                            <li><strong>Code Quality:</strong> Follow best practices, clean code principles</li>
+                            <li><strong>Demo:</strong> Include a video demo or live deployment link</li>
+                            <li><strong>Evaluation:</strong> Based on functionality, code quality, documentation, and innovation</li>
+                        </ul>
+                        <p><strong>💡 Pro Tips:</strong> Focus on MVP first, then add advanced features. Good documentation is as important as good code!</p>
+                        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 16px; border-radius: 12px; margin-top: 16px; border-left: 4px solid #2196f3;">
+                            <p style="margin: 0; color: #1565c0; font-weight: 600;">🎯 <strong>Success Tip:</strong> Quality over quantity - a well-built, documented solution beats a feature-heavy but poorly implemented one!</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (lowerMessage.includes('accept assignment')) {
+                const assignmentId = parseInt(lowerMessage.match(/\d+/)?.[0]);
+                if (assignmentId && assignmentId >= 1 && assignmentId <= 4) {
+                    const assignment = assignments.find(a => a.id === assignmentId);
+                    const deadline = new Date();
+                    deadline.setHours(deadline.getHours() + 48);
+                    
+                    return `
+                        <div class="assignment-details">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <div style="font-size: 48px; margin-bottom: 12px;">🎉</div>
+                                <h3 style="color: #28a745; margin-bottom: 8px;">Assignment Accepted Successfully!</h3>
+                                <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 12px 24px; border-radius: 25px; display: inline-block; font-weight: 600; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);">
+                                    ${assignment.title}
+                                </div>
+                            </div>
+                            
+                            <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); padding: 20px; border-radius: 15px; margin: 16px 0; border-left: 4px solid #ffc107;">
+                                <p style="margin: 0; color: #856404;"><strong>⏰ Deadline:</strong> ${deadline.toLocaleString()}</p>
+                                <p style="margin: 8px 0 0 0; color: #856404; font-size: 14px;">You have exactly 48 hours from now to complete this challenge!</p>
+                            </div>
+                            
+                            <h4>🚀 Next Steps:</h4>
+                            <ol>
+                                <li><strong>Create Repository:</strong> Set up a new GitHub repository</li>
+                                <li><strong>Environment Setup:</strong> Configure your development environment</li>
+                                <li><strong>Architecture Design:</strong> Plan and implement the basic architecture</li>
+                                <li><strong>Core Features:</strong> Build the main functionality first</li>
+                                <li><strong>Documentation:</strong> Write comprehensive README and API docs</li>
+                                <li><strong>Testing:</strong> Add unit and integration tests</li>
+                                <li><strong>Submission:</strong> Email the repository link to our team</li>
+                            </ol>
+                            
+                            <div style="background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); padding: 20px; border-radius: 15px; margin-top: 20px; border-left: 4px solid #17a2b8;">
+                                <p style="margin: 0; color: #0c5460;"><strong>🎯 Reminder:</strong> Quality beats quantity! Focus on clean, well-documented code that demonstrates your understanding of AI agent principles.</p>
+                            </div>
+                            
+                            <p style="text-align: center; margin-top: 20px; font-size: 18px;"><strong>Good luck, and may the code be with you! 🚀</strong></p>
+                        </div>
+                    `;
+                }
+                return 'Please specify a valid assignment number (1-4). Type "Show Assignments" to see available options.';
+            }
+            
+            if (lowerMessage.includes('help') || lowerMessage.includes('commands')) {
+                return `
+                    <div class="assignment-details">
+                        <h3>❓ Available Commands</h3>
+                        <ul>
+                            <li><strong>"show assignments"</strong> - View all available assignments</li>
+                            <li><strong>"assignment guidelines"</strong> - View submission guidelines</li>
+                            <li><strong>"accept assignment [1-4]"</strong> - Accept a specific assignment</li>
+                            <li><strong>"help"</strong> - Show this help menu</li>
+                        </ul>
+                        <p>You can also click on assignment cards to view detailed requirements, or use the quick action buttons above the input field!</p>
+                        
+                        <h4>📞 Need Human Support?</h4>
+                        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 15px; margin-top: 16px; border-left: 4px solid #28a745;">
+                            <p><strong>📧 Email:</strong> <a href="mailto:hiring@techcorp.ai" style="color: #667eea; text-decoration: none; font-weight: 600;">hiring@techcorp.ai</a></p>
+                            <p><strong>📱 Phone:</strong> <a href="tel:+1-555-0123" style="color: #667eea; text-decoration: none; font-weight: 600;">+1 (555) 012-3456</a></p>
+                            <p><strong>🕒 Support Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM (EST)</p>
+                            <p style="font-size: 13px; color: #6c757d; margin-top: 12px; font-style: italic;">Our technical recruitment team is here to help with any questions about the assessment process!</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (lowerMessage.includes('deadline') || lowerMessage.includes('time')) {
+                return 'All assignments have a 48-hour deadline from the time of acceptance. This gives you enough time to build a quality solution while demonstrating your ability to work efficiently.';
+            }
+            
+            if (lowerMessage.includes('tech stack') || lowerMessage.includes('technology')) {
+                return 'Each assignment specifies its required tech stack. You\'re free to use additional tools and libraries that complement the specified stack. The focus is on demonstrating your ability to build production-ready AI agents.';
+            }
+            
+            if (lowerMessage.includes('evaluation') || lowerMessage.includes('criteria')) {
+                return `
+                    <p><strong>🎯 Evaluation Criteria:</strong></p>
+                    <ul>
+                        <li><strong>Functionality (30%):</strong> Does the solution work as intended?</li>
+                        <li><strong>Code Quality (25%):</strong> Clean, maintainable, well-structured code</li>
+                        <li><strong>Documentation (20%):</strong> Clear setup instructions and API docs</li>
+                        <li><strong>AI Integration (15%):</strong> Effective use of AI/ML technologies</li>
+                        <li><strong>Innovation (10%):</strong> Creative approaches and additional features</li>
+                    </ul>
+                `;
+            }
+            
+            // Default response for unrecognized input
+            return `
+                <p>I'm not sure how to help with that. Here are some things you can try:</p>
+                <ul>
+                    <li>Type <strong>"show assignments"</strong> to see available challenges</li>
+                    <li>Type <strong>"help"</strong> for available commands</li>
+                    <li>Click on an assignment card to view details</li>
+                    <li>Ask about guidelines, deadlines, or evaluation criteria</li>
+                </ul>
+            `;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Show send feedback
+            showSendFeedback();
+            
+            // Add user message
+            addMessage(message, true);
+            conversationHistory.push({role: 'user', content: message});
+            updateMessageCounter();
+            
+            // Clear input and reset character counter
+            input.value = '';
+            updateCharCount();
+            
+            // Process and respond
+            simulateTyping(() => {
+                const response = processMessage(message);
+                addMessage(response);
+                conversationHistory.push({role: 'assistant', content: response});
+            });
+        }
+
+        function sendQuickMessage(message) {
+            const input = document.getElementById('chatInput');
+            input.value = message;
+            sendMessage();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Focus input on load
+        window.onload = function() {
+            document.getElementById('chatInput').focus();
+            hideEmptyState();
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case '1':
+                            e.preventDefault();
+                            sendQuickMessage('Show Assignments');
+                            break;
+                        case '2':
+                            e.preventDefault();
+                            sendQuickMessage('Assignment Guidelines');
+                            break;
+                        case '3':
+                            e.preventDefault();
+                            sendQuickMessage('Help');
+                            break;
+                        case '/':
+                            e.preventDefault();
+                            document.getElementById('chatInput').focus();
+                            break;
+                    }
+                }
+                
+                // ESC to clear input
+                if (e.key === 'Escape') {
+                    document.getElementById('chatInput').value = '';
+                    updateCharCount();
+                }
+            });
+        };
+
+        function hideEmptyState() {
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        // Add sound effects (optional)
+        function playNotificationSound() {
+            // Create a subtle notification sound
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+    </script>
+</body>
+</html>
