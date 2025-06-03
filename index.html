@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>AI Agent Hiring Assistant</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -13,98 +13,9 @@
             box-sizing: border-box;
         }
 
-        /* Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 120px;
-            right: 30px;
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-            border-radius: 50%;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
 
-        .fab:hover {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: 0 12px 32px rgba(255, 107, 107, 0.4);
-        }
 
-        .fab:active {
-            transform: scale(0.95);
-        }
 
-        /* Notification badge */
-        .notification-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 20px;
-            height: 20px;
-            background: #28a745;
-            border-radius: 50%;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: badge-pulse 2s infinite;
-        }
-
-        @keyframes badge-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-
-        /* Enhanced tooltips */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 140px;
-            background-color: rgba(0,0,0,0.9);
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px;
-            position: absolute;
-            z-index: 1001;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -70px;
-            font-size: 12px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .tooltip .tooltiptext::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: rgba(0,0,0,0.9) transparent transparent transparent;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -114,6 +25,8 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body::before {
@@ -279,6 +192,7 @@
             overflow-y: auto;
             background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
             position: relative;
+            -webkit-overflow-scrolling: touch;
         }
 
         .chat-messages::before {
@@ -419,6 +333,7 @@
             position: relative;
             overflow: hidden;
             border: 1px solid rgba(255,255,255,0.1);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .assignment-card::before {
@@ -432,20 +347,18 @@
             transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .assignment-card:hover::before {
+        .assignment-card:hover::before,
+        .assignment-card:active::before {
             left: 100%;
         }
 
-        .assignment-card:hover {
+        .assignment-card:hover,
+        .assignment-card:active {
             transform: translateY(-8px) scale(1.02);
             box-shadow: 
                 0 20px 40px rgba(102, 126, 234, 0.3),
                 0 10px 20px rgba(102, 126, 234, 0.2),
                 0 0 0 1px rgba(255,255,255,0.1) inset;
-        }
-
-        .assignment-card:active {
-            transform: translateY(-4px) scale(1.01);
         }
 
         .assignment-title {
@@ -677,6 +590,8 @@
             letter-spacing: 0.3px;
             position: relative;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 48px;
         }
 
         .send-btn::before {
@@ -690,19 +605,17 @@
             transition: left 0.6s ease;
         }
 
-        .send-btn:hover {
+        .send-btn:hover,
+        .send-btn:active {
             transform: translateY(-2px) scale(1.02);
             box-shadow: 
                 0 8px 24px rgba(102, 126, 234, 0.4),
                 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .send-btn:hover::before {
+        .send-btn:hover::before,
+        .send-btn:active::before {
             left: 100%;
-        }
-
-        .send-btn:active {
-            transform: translateY(0) scale(0.98);
         }
 
         .send-btn:disabled {
@@ -736,7 +649,7 @@
         }
 
         .quick-btn {
-            padding: 10px 18px;
+            padding: 12px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -751,6 +664,11 @@
                 0 1px 4px rgba(102, 126, 234, 0.1);
             position: relative;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .quick-btn::before {
@@ -764,27 +682,8 @@
             transition: left 0.5s ease;
         }
 
-        .quick-btn::after {
-            content: attr(data-shortcut);
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-
-        .quick-btn:hover::after {
-            opacity: 1;
-        }
-
-        .quick-btn:hover {
+        .quick-btn:hover,
+        .quick-btn:active {
             background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
             transform: translateY(-2px) scale(1.05);
             box-shadow: 
@@ -792,12 +691,9 @@
                 0 3px 8px rgba(102, 126, 234, 0.2);
         }
 
-        .quick-btn:hover::before {
+        .quick-btn:hover::before,
+        .quick-btn:active::before {
             left: 100%;
-        }
-
-        .quick-btn:active {
-            transform: translateY(0) scale(1.02);
         }
 
         .typing-indicator {
@@ -879,19 +775,33 @@
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
         }
 
+        /* Mobile Optimizations */
         @media (max-width: 768px) {
             .chatbot-container {
                 width: 95%;
                 height: 95vh;
-                border-radius: 20px;
+                border-radius: 16px;
             }
             
             .chatbot-header {
-                padding: 24px 20px;
+                padding: 20px 16px;
+            }
+            
+            .stage-indicator {
+                left: 16px;
+                top: 8px;
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+            
+            .status-indicator {
+                top: 20px;
+                right: 16px;
             }
             
             .chatbot-header h1 {
-                font-size: 24px;
+                font-size: 22px;
+                margin-bottom: 6px;
             }
             
             .chatbot-header p {
@@ -899,54 +809,87 @@
             }
             
             .chat-messages {
-                padding: 20px;
+                padding: 16px;
             }
             
             .message-content {
-                max-width: 90%;
-                padding: 16px 20px;
+                max-width: 85%;
+                padding: 14px 18px;
                 font-size: 14px;
+                border-radius: 16px;
             }
             
             .assignment-card {
-                padding: 20px;
+                padding: 18px;
                 margin: 12px 0;
+                border-radius: 14px;
             }
             
             .assignment-title {
-                font-size: 18px;
+                font-size: 17px;
+                margin-bottom: 10px;
             }
             
             .assignment-brief {
                 font-size: 14px;
+                margin-bottom: 14px;
+            }
+            
+            .assignment-meta {
+                font-size: 12px;
+                flex-wrap: wrap;
+                gap: 8px;
             }
             
             .assignment-details {
-                padding: 24px 20px;
+                padding: 20px 16px;
+                border-radius: 16px;
+            }
+            
+            .assignment-details h3 {
+                font-size: 19px;
+                margin-bottom: 14px;
+            }
+            
+            .assignment-details h4 {
+                font-size: 16px;
+                margin: 16px 0 10px 0;
+            }
+            
+            .assignment-details p,
+            .assignment-details li {
+                font-size: 14px;
+                line-height: 1.5;
             }
             
             .chat-input-container {
-                padding: 20px;
+                padding: 16px;
             }
             
             .chat-input {
-                padding: 14px 20px;
+                padding: 14px 18px;
                 font-size: 16px;
+                border-radius: 24px;
             }
             
             .send-btn {
-                padding: 14px 20px;
+                padding: 14px 18px;
                 font-size: 14px;
+                border-radius: 24px;
+                min-width: 60px;
             }
             
             .quick-actions {
                 justify-content: center;
                 gap: 8px;
+                margin-bottom: 14px;
             }
             
             .quick-btn {
-                padding: 8px 14px;
+                padding: 10px 16px;
                 font-size: 13px;
+                border-radius: 20px;
+                min-height: 44px;
             }
             
             .tech-stack {
@@ -956,7 +899,18 @@
             .tech-tag {
                 padding: 6px 12px;
                 font-size: 12px;
+                border-radius: 16px;
             }
+            
+            .deadline-badge {
+                padding: 10px 16px;
+                font-size: 14px;
+                border-radius: 20px;
+            }
+            
+
+            
+
         }
 
         @media (max-width: 480px) {
@@ -964,23 +918,101 @@
                 width: 100%;
                 height: 100vh;
                 border-radius: 0;
+                max-width: none;
+            }
+            
+            .chatbot-header {
+                padding: 16px 12px;
+            }
+            
+            .stage-indicator {
+                left: 12px;
+                top: 6px;
+                font-size: 9px;
+                padding: 3px 6px;
+            }
+            
+            .status-indicator {
+                top: 16px;
+                right: 12px;
+                width: 12px;
+                height: 12px;
             }
             
             .chatbot-header h1 {
-                font-size: 22px;
+                font-size: 20px;
+                margin-bottom: 4px;
+            }
+            
+            .chatbot-header p {
+                font-size: 13px;
+            }
+            
+            .chat-messages {
+                padding: 12px;
+            }
+            
+            .message {
+                margin-bottom: 16px;
             }
             
             .message-content {
-                max-width: 95%;
-                padding: 14px 18px;
+                max-width: 90%;
+                padding: 12px 16px;
+                font-size: 14px;
+                border-radius: 14px;
             }
             
             .assignment-card {
-                padding: 18px;
+                padding: 16px;
+                margin: 10px 0;
+                border-radius: 12px;
+            }
+            
+            .assignment-title {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            
+            .assignment-brief {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+            
+            .assignment-meta {
+                font-size: 11px;
+                flex-direction: column;
+                gap: 4px;
             }
             
             .assignment-details {
-                padding: 20px 16px;
+                padding: 16px 12px;
+                border-radius: 14px;
+            }
+            
+            .assignment-details h3 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+            
+            .assignment-details h4 {
+                font-size: 15px;
+                margin: 14px 0 8px 0;
+            }
+            
+            .assignment-details p,
+            .assignment-details li {
+                font-size: 13px;
+                line-height: 1.4;
+                margin-bottom: 12px;
+            }
+            
+            .assignment-details ul {
+                margin-left: 16px;
+            }
+            
+            .chat-input-container {
+                padding: 12px;
             }
             
             .input-group {
@@ -988,7 +1020,160 @@
             }
             
             .chat-input {
+                padding: 12px 16px;
                 font-size: 16px; /* Prevents zoom on iOS */
+                border-radius: 20px;
+            }
+            
+            .send-btn {
+                padding: 12px 16px;
+                font-size: 13px;
+                border-radius: 20px;
+                min-width: 56px;
+            }
+            
+            .quick-actions {
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+            
+            .quick-actions::before {
+                font-size: 10px;
+                top: -18px;
+            }
+            
+            .quick-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+                border-radius: 16px;
+                min-height: 40px;
+            }
+            
+            .tech-stack {
+                gap: 6px;
+            }
+            
+            .tech-tag {
+                padding: 5px 10px;
+                font-size: 11px;
+                border-radius: 14px;
+            }
+            
+            .deadline-badge {
+                padding: 8px 14px;
+                font-size: 13px;
+                border-radius: 18px;
+            }
+            
+
+        }
+
+        /* Landscape orientation optimizations for mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .chatbot-container {
+                height: 100vh;
+            }
+            
+            .chatbot-header {
+                padding: 12px 16px;
+            }
+            
+            .chatbot-header h1 {
+                font-size: 18px;
+                margin-bottom: 2px;
+            }
+            
+            .chatbot-header p {
+                font-size: 12px;
+            }
+            
+            .chat-messages {
+                padding: 12px 16px;
+            }
+            
+            .message {
+                margin-bottom: 12px;
+            }
+            
+            .chat-input-container {
+                padding: 12px 16px;
+            }
+            
+            .quick-actions {
+                margin-bottom: 8px;
+            }
+            
+            .quick-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+                min-height: 36px;
+            }
+        }
+
+        /* Touch improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .message.bot .message-content:hover,
+            .message.user .message-content:hover,
+            .assignment-card:hover,
+            .tech-tag:hover,
+            .quick-btn:hover,
+            .send-btn:hover {
+                transform: none;
+                box-shadow: initial;
+            }
+            
+            .assignment-card:active,
+            .quick-btn:active,
+            .send-btn:active,
+            .fab:active {
+                transform: scale(0.98);
+                opacity: 0.9;
+            }
+        }
+
+        /* Better focus states for accessibility */
+        .chat-input:focus,
+        .send-btn:focus,
+        .quick-btn:focus,
+        .assignment-card:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        /* Improved contrast for better readability */
+        @media (prefers-contrast: high) {
+            .message.bot .message-content {
+                background: #ffffff;
+                border: 2px solid #000000;
+            }
+            
+            .message.user .message-content {
+                background: #000000;
+                color: #ffffff;
+            }
+            
+            .assignment-card {
+                border: 2px solid #ffffff;
+            }
+        }
+
+        /* Reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .backgroundShift,
+            .headerShimmer,
+            .floatRight,
+            .gentle-bounce,
+            .badge-pulse,
+            .statusPulse,
+            .progressGlow,
+            .deadlinePulse {
+                animation: none;
             }
         }
     </style>
@@ -1080,12 +1265,7 @@
         </div>
     </div>
 
-    <!-- Floating Action Button -->
-    <button class="fab tooltip" onclick="showQuickTips()" title="Quick Tips">
-        💡
-        <span class="tooltiptext">Get quick tips & shortcuts</span>
-        <div class="notification-badge">!</div>
-    </button>
+
 
     <script>
         const assignments = [
@@ -1257,47 +1437,7 @@
             }, delay);
         }
 
-        function showQuickTips() {
-            const tips = `
-                <div class="assignment-details">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <div style="font-size: 42px; margin-bottom: 12px;">⚡</div>
-                        <h3>Quick Tips & Shortcuts</h3>
-                    </div>
-                    
-                    <h4>⌨️ Keyboard Shortcuts:</h4>
-                    <ul>
-                        <li><strong>Ctrl/Cmd + 1:</strong> Show Assignments</li>
-                        <li><strong>Ctrl/Cmd + 2:</strong> View Guidelines</li>
-                        <li><strong>Ctrl/Cmd + 3:</strong> Get Help</li>
-                        <li><strong>Ctrl/Cmd + /:</strong> Focus input field</li>
-                        <li><strong>ESC:</strong> Clear input</li>
-                        <li><strong>Enter:</strong> Send message</li>
-                    </ul>
-                    
-                    <h4>🎯 Pro Tips:</h4>
-                    <ul>
-                        <li>Click directly on assignment cards to view details</li>
-                        <li>Use natural language - ask questions conversationally</li>
-                        <li>Type "Accept Assignment [1-4]" to start a challenge</li>
-                        <li>All assignments have a 48-hour deadline from acceptance</li>
-                        <li>Focus on code quality and documentation</li>
-                    </ul>
-                    
-                    <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 20px; border-radius: 15px; margin-top: 20px; border-left: 4px solid #2196f3;">
-                        <p style="margin: 0; color: #1565c0; font-weight: 600;">🚀 <strong>Ready to start?</strong> Type "Show Assignments" or click the button above to explore all 4 AI agent challenges!</p>
-                    </div>
-                </div>
-            `;
-            
-            addMessage(tips);
-            
-            // Hide the notification badge after showing tips
-            const badge = document.querySelector('.notification-badge');
-            if (badge) {
-                badge.style.display = 'none';
-            }
-        }
+
 
         function showAllAssignments() {
             let content = '<p><strong>🚀 Available AI Agent Assignments:</strong></p>';
@@ -1376,10 +1516,6 @@
 
         function processMessage(message) {
             const lowerMessage = message.toLowerCase().trim();
-            
-            if (lowerMessage.includes('show assignments') || lowerMessage.includes('assignments') || lowerMessage.includes('list')) {
-                return showAllAssignments();
-            }
             
             if (lowerMessage.includes('show assignments') || lowerMessage.includes('assignments') || lowerMessage.includes('list')) {
                 return showAllAssignments();
